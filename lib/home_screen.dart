@@ -8,106 +8,123 @@ import 'package:flutter_tugasbank_ayuka/pages/deposito_page.dart';
 import 'package:flutter_tugasbank_ayuka/pages/mutasi_page.dart';
 import 'package:flutter_tugasbank_ayuka/pages/pinjaman_page.dart';
 import 'package:flutter_tugasbank_ayuka/pages/transfer_page.dart';
-import 'package:flutter_tugasbank_ayuka/models/nasabah.dart';
-import 'package:flutter_tugasbank_ayuka/models/transaksi.dart';
-import '../data/nasabah_data.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_tugasbank_ayuka/data/nasabah_provider.dart';
 import 'package:intl/intl.dart';
 
+const Color primaryColor = Color(0xFF0D47A1); // Biru Tua
+const Color accentColor = Color(0xFFF4C430);  // Emas Muda
+const Color backgroundColor = Color.fromARGB(255, 238, 245, 255); // Abu biru Muda
+const Color cardColor = Color(0xFFFFFFFF); // Putih
+const Color textLightColor = Color(0xFF757575); // Abu-abu Tua
+
 class HomeScreen extends StatefulWidget {
-  final Nasabah nasabah;
-
-  const HomeScreen({Key? key, required this.nasabah}) : super(key: key);
-
+  const HomeScreen({Key? key}) : super(key: key);
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Nasabah _nasabah;
-  final NumberFormat currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-
-  @override
-  void initState() {
-    super.initState();
-    _nasabah = widget.nasabah;
-  }
+  final NumberFormat currencyFormat =
+      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
   @override
   Widget build(BuildContext context) {
+    final nasabah = Provider.of<NasabahProvider>(context).nasabah;
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.blue[900],
+        backgroundColor: primaryColor,
+        elevation: 0,
         title: const Text(
           "Koperasi Undiksha",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: cardColor),
         ),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.logout))],
+        centerTitle: true,
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView(
               children: [
-                // Informasi Nasabah
+                // Kartu informasi saldo
                 Container(
                   margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.blue),
+                    color: primaryColor,
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     children: [
                       const CircleAvatar(
                         radius: 30,
-                        backgroundImage: AssetImage("assets/profile.png"),
+                        backgroundImage: AssetImage("../assets/DSC05580.png"),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text("Nasabah", style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(_nasabah.nama, overflow: TextOverflow.ellipsis),
-                            const SizedBox(height: 5),
-                            const Text("Total Saldo Anda", style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(currencyFormat.format(_nasabah.saldo)),
+                            Text(nasabah.nama,
+                                style: const TextStyle(
+                                    color: cardColor,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 8),
+                            const Text("Total Saldo",
+                                style: TextStyle(color: Colors.white70)),
+                            Text(currencyFormat.format(nasabah.saldo),
+                                style: const TextStyle(
+                                    color: cardColor,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Text("Deposito: ${currencyFormat.format(nasabah.deposito)}",
+                                style: const TextStyle(color: accentColor)),
                           ],
                         ),
-                      ),
+                      )
                     ],
                   ),
                 ),
 
-                // Menu Utama
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 3,
-                  childAspectRatio: 1,
+                // Grid Menu
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    _buildMenuItem(context, Icons.account_balance_wallet, "Cek Saldo", () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => CekSaldoPage()));
-                    }),
-                    _buildMenuItem(context, Icons.send, "Transfer", () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (context) => TransferPage()));
-                      setState(() {}); // Refresh setelah transfer
-                    }),
-                    _buildMenuItem(context, Icons.savings, "Deposito", () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => DepositoPage()));
-                    }),
-                    _buildMenuItem(context, Icons.payment, "Pembayaran", () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => PembayaranPage()));
-                    }),
-                    _buildMenuItem(context, Icons.attach_money, "Pinjaman", () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => PinjamanPage()));
-                    }),
-                    _buildMenuItem(context, Icons.history, "Mutasi", () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => MutasiPage()));
-                    }),
-                  ],
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.9,
+                    children: [
+                      _buildMenuItem(Icons.account_balance_wallet, "Cek Saldo", () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => CekSaldoPage()));
+                      }),
+                      _buildMenuItem(Icons.send, "Transfer", () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => TransferPage()));
+                        setState(() {});
+                      }),
+                      _buildMenuItem(Icons.savings, "Deposito", () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => DepositoPage()));
+                        setState(() {});
+                      }),
+                      _buildMenuItem(Icons.payment, "Pembayaran", () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => PembayaranPage()));
+                        setState(() {});
+                      }),
+                      _buildMenuItem(Icons.attach_money, "Pinjaman", () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => PinjamanPage()));
+                        setState(() {});
+                      }),
+                      _buildMenuItem(Icons.history, "Mutasi", () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => MutasiPage()));
+                      }),
+                    ],
+                  ),
                 ),
 
                 // Bantuan
@@ -115,20 +132,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.blue),
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 6,
+                        color: Colors.black.withOpacity(0.05),
+                        offset: const Offset(0, 3),
+                      )
+                    ],
                   ),
                   child: Row(
                     children: const [
-                      Icon(Icons.phone, color: Colors.blue, size: 40),
-                      SizedBox(width: 10),
+                      Icon(Icons.phone, color: accentColor, size: 40),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text("Butuh Bantuan?", style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text("0857-8497-8009", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text("0857-8497-8009", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                           ],
                         ),
                       ),
@@ -139,16 +162,25 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Menu Bawah
+          // Bottom navigation custom
           Container(
-            color: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.1),
+                  offset: const Offset(0, -2),
+                )
+              ],
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildBottomMenu(context, Icons.settings, "Setting", SettingPage()),
-                _buildBottomMenu(context, Icons.qr_code, "Scan QR", ScanQRPage()),
-                _buildBottomMenu(context, Icons.person, "Profile", ProfilePage()),
+                _buildBottomMenu(Icons.settings, "Setting", SettingPage()),
+                _buildBottomMenu(Icons.qr_code_scanner, "Scan QR", ScanQRPage()),
+                _buildBottomMenu(Icons.person, "Profile", ProfilePage()),
               ],
             ),
           ),
@@ -157,34 +189,48 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, IconData icon, String label, Function onTap) {
+  Widget _buildMenuItem(IconData icon, String label, Function() onTap) {
     return GestureDetector(
-      onTap: () => onTap(),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 40, color: Colors.blue),
-          const SizedBox(height: 5),
-          Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
-        ],
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 4,
+              color: const Color.fromARGB(30, 0, 0, 0),
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 30, color: primaryColor),
+            const SizedBox(height: 6),
+            Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildBottomMenu(BuildContext context, IconData icon, String label, Widget page) {
+  Widget _buildBottomMenu(IconData icon, String label, Widget page) {
     return GestureDetector(
       onTap: () async {
         await Navigator.push(context, MaterialPageRoute(builder: (context) => page));
-        setState(() {}); // Refresh saldo jika ada perubahan dari halaman lain
+        setState(() {});
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 30, color: Colors.blue),
+          Icon(icon, size: 26, color: primaryColor),
+          const SizedBox(height: 4),
           Text(label, style: const TextStyle(fontSize: 12)),
         ],
       ),
     );
   }
 }
-

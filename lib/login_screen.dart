@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tugasbank_ayuka/data/nasabah_data.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_tugasbank_ayuka/models/nasabah.dart';
+import 'package:flutter_tugasbank_ayuka/data/nasabah_provider.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -14,109 +17,133 @@ class _LoginScreenState extends State<LoginScreen> {
   String usernameError = '';
   String passwordError = '';
 
-  void _login() async {
+  Future<void> _login() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
-    const validUsername = "Ayukadw";
-    const validPassword = "2315091018";
-
-    setState(() {
-      usernameError = '';
-      passwordError = '';
-    });
-
-    if (username != validUsername) {
-      setState(() {
-        usernameError = "Username salah";
-      });
-    } else if (password != validPassword) {
-      setState(() {
-        passwordError = "Password salah";
-      });
-    } else {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (username == "Ayukadw" && password == "2315091018") {
+      final prefs = await SharedPreferences.getInstance();
       await prefs.setString('username', username);
+
+      final nasabahProvider = Provider.of<NasabahProvider>(context, listen: false);
+      final nasabahBaru = Nasabah(
+        nama: "Ni Putu Ayu Kusuma Dewi",
+        saldo: 3600000,
+        histori: [],
+        historiBayar: [],
+      );
+      nasabahProvider.setNasabah(nasabahBaru);
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen(nasabah: nasabahDummy,)),
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
+    } else {
+      setState(() {
+        usernameError = username != "Ayukadw" ? "Username salah" : '';
+        passwordError = password != "2315091018" ? "Password salah" : '';
+      });
     }
   }
 
-  // @override
-  // void dispose() {
-  //   _usernameController.dispose();
-  //   _passwordController.dispose();
-  //   super.dispose();
-  // }
-
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            color: Colors.blue[900],
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: Text(
-                "Koperasi Undiksha",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+      backgroundColor: backgroundColor,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              height: screenHeight * 0.35,
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset('assets/logo.png', height: 80),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Koperasi Undiksha",
+                      style: TextStyle(
+                        color: cardColor,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 20),
-          Image.asset('assets/logo.png', height: 100),
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(
-                    labelText: "Username",
-                    border: OutlineInputBorder(),
-                    errorText: usernameError.isEmpty ? null : usernameError, // Menampilkan error jika ada
+            const SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.person),
+                      labelText: "Username",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      errorText: usernameError.isEmpty ? null : usernameError,
+                    ),
                   ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    border: OutlineInputBorder(),
-                    errorText: passwordError.isEmpty ? null : passwordError, // Menampilkan error jika ada
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.lock),
+                      labelText: "Password",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      errorText: passwordError.isEmpty ? null : passwordError,
+                    ),
                   ),
-                  obscureText: true,
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[900],
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  const SizedBox(height: 30),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        "Login",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: cardColor),
+                      ),
+                    ),
                   ),
-                  child: Text("Login", style: TextStyle(color: Colors.white)),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(onPressed: () {}, child: Text("Daftar Mbanking")),
-                    TextButton(onPressed: () {}, child: Text("Lupa password?")),
-                  ],
-                )
-              ],
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(onPressed: () {}, child: const Text("Daftar Mbanking", style: TextStyle(color: textLightColor))),
+                      TextButton(onPressed: () {}, child: const Text("Lupa password?", style: TextStyle(color: textLightColor))),
+                    ],
+                  )
+                ],
+              ),
             ),
-          ),
-          Spacer(),
-          Container(
-            padding: EdgeInsets.all(10),
-            color: Colors.grey[300],
-            child: Text("copyright @2025 by Ayukadw"),
-          ),
-        ],
+            const SizedBox(height: 40),
+            Text(
+              "© 2025 Ayukadw",
+              style: TextStyle(color: textLightColor, fontSize: 14),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
