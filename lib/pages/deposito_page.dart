@@ -16,15 +16,41 @@ class DepositoPage extends StatefulWidget {
 class _DepositoPageState extends State<DepositoPage> {
   final _jumlahController = TextEditingController();
   final _tokenController = TextEditingController();
+  final _noRekeningController = TextEditingController();
 
   final double bungaTahunan = 4.5; // Contoh bunga
   int _selectedDuration = 1; // default 1 bulan
+  String _metodeSetor = 'tabungan'; // default sumber dana
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<NasabahProvider>().nasabah.cekDanCairkanDeposito();
+      final nasabah = context.read<NasabahProvider>().nasabah;
+      final hasilCair = nasabah.cekDanCairkanDeposito();
+
+      if (hasilCair.isNotEmpty) {
+        final pesan = hasilCair.map((e) =>
+          'Deposito ${DateFormat('dd MMM yyyy').format(e.tanggalMulai)} dicairkan sejumlah '
+          '${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(e.hasilAkhir)}.'
+        ).join('\n\n');
+
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Deposito Dicairkan'),
+            content: Text(pesan),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+
       setState(() {});
     });
   }
@@ -41,6 +67,20 @@ class _DepositoPageState extends State<DepositoPage> {
     if (token != '2315091018') {
       _showDialog('Token salah. Silakan coba lagi.');
       return;
+    }
+
+    if (_metodeSetor == 'bank' && _noRekeningController.text.trim().isEmpty) {
+      _showDialog('Silakan masukkan nomor rekening jika memilih top up dari bank lain.');
+      return;
+    }
+
+    final provider = context.read<NasabahProvider>();
+
+    if (_metodeSetor == 'tabungan') {
+      if (provider.nasabah.saldo < jumlah) {
+        _showDialog('Saldo tabungan tidak mencukupi.');
+        return;
+      }
     }
 
     final now = DateTime.now();
@@ -74,23 +114,35 @@ class _DepositoPageState extends State<DepositoPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
             onPressed: () {
-              final provider = context.read<NasabahProvider>();
+              if (_metodeSetor == 'tabungan') {
+                provider.nasabah.saldo -= jumlah;
+              }
+
+              final deskripsi = _metodeSetor == 'bank'
+                  ? 'Setor Deposito dari Bank (${_noRekeningController.text})'
+                  : 'Setor Deposito dari Tabungan';
+
               provider.tambahDeposito(Deposito(
                 jumlah: jumlah,
                 tanggalMulai: now,
                 tanggalJatuhTempo: jatuhTempo,
                 bungaTahunan: bungaTahunan,
               ));
+
               provider.tambahTransaksi(Transaksi(
-                deskripsi: "Setor Deposito",
+                deskripsi: deskripsi,
                 jumlah: jumlah,
                 tanggal: now,
               ));
+
               Navigator.pop(context);
               _showDialog('Deposito berhasil sejumlah $formattedJumlah\n(Jatuh tempo: ${DateFormat('dd MMM yyyy').format(jatuhTempo)})');
               _jumlahController.clear();
               _tokenController.clear();
-              setState(() {});
+              _noRekeningController.clear();
+              setState(() {
+                _metodeSetor = 'tabungan';
+              });
             },
             child: const Text('Ya, Setor', style: TextStyle(color: cardColor)),
           ),
@@ -179,6 +231,40 @@ class _DepositoPageState extends State<DepositoPage> {
               onChanged: (val) => setState(() {
                 _selectedDuration = val ?? 1;
               }),
+            ),
+            const SizedBox(height: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Sumber Dana', style: TextStyle(fontWeight: FontWeight.bold)),
+                ListTile(
+                  title: const Text('Potong dari Tabungan'),
+                  leading: Radio(
+                    value: 'tabungan',
+                    groupValue: _metodeSetor,
+                    onChanged: (val) => setState(() => _metodeSetor = val!),
+                  ),
+                ),
+                ListTile(
+                  title: const Text('Top Up dari Bank Lain'),
+                  leading: Radio(
+                    value: 'bank',
+                    groupValue: _metodeSetor,
+                    onChanged: (val) => setState(() => _metodeSetor = val!),
+                  ),
+                ),
+                if (_metodeSetor == 'bank') ...[
+                  TextField(
+                    controller: _noRekeningController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Nomor Rekening Bank',
+                      prefixIcon: const Icon(Icons.account_balance),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 20),
             TextField(

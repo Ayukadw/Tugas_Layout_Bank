@@ -68,7 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 30),
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)), color: cardColor,
               child: ListTile(
                 leading: const Icon(Icons.person, color: primaryColor),
                 title: const Text('Username', style: TextStyle(fontSize: 16, color: textLightColor)),
@@ -77,12 +77,12 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)), color: cardColor,
               child: ListTile(
                 leading: const Icon(Icons.account_balance_wallet, color: accentColor),
                 title: const Text('Saldo', style: TextStyle(fontSize: 16, color: textLightColor)),
                 subtitle: Text(
-                  'Rp ${nasabah.saldo.toStringAsFixed(2)}',
+                  'Rp ${nasabah.saldo.toStringAsFixed(0)}',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),

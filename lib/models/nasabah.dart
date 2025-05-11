@@ -34,17 +34,20 @@ class Nasabah {
     daftarDeposito.add(d);
   }
 
-  void cekDanCairkanDeposito() {
-    final yangSudahJatuhTempo = daftarDeposito.where((d) => d.sudahJatuhTempo).toList();
-    for (var d in yangSudahJatuhTempo) {
-      saldo += d.hasilAkhir;
-      histori.add(Transaksi(
-        deskripsi: "Pencairan Deposito + Bunga",
-        jumlah: d.hasilAkhir,
-        tanggal: DateTime.now(),
-      ));
-      deposito -= d.jumlah;
-      daftarDeposito.remove(d);
-    }
+  List<Deposito> cekDanCairkanDeposito() {
+  final yangSudahJatuhTempo = daftarDeposito.where((d) => d.sudahJatuhTempo).toList();
+
+  for (var d in yangSudahJatuhTempo) {
+    saldo += d.hasilAkhir;
+    histori.add(Transaksi(
+      deskripsi: "Pencairan Deposito + Bunga",
+      jumlah: d.hasilAkhir,
+      tanggal: DateTime.now(),
+    ));
+    deposito -= d.jumlah;
   }
+
+  daftarDeposito.removeWhere((d) => d.sudahJatuhTempo);
+  return yangSudahJatuhTempo;
+}
 }

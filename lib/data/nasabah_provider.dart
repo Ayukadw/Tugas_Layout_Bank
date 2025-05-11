@@ -43,4 +43,9 @@ class NasabahProvider extends ChangeNotifier {
     _nasabah = nasabahBaru;
     notifyListeners();
   }
+
+  void cairkanDepositoJatuhTempo() {
+    _nasabah.cekDanCairkanDeposito();
+    notifyListeners();
+  }
 }

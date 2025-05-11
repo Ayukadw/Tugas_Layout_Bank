@@ -78,7 +78,17 @@ class MutasiPage extends StatelessWidget {
               transaksi.deskripsi,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: Text(dateFormat.format(transaksi.tanggal)),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(dateFormat.format(transaksi.tanggal)),
+                if (transaksi.catatan != null && transaksi.catatan!.isNotEmpty) 
+                  Text(
+                    'Catatan: ${transaksi.catatan}',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+              ],
+            ),
             trailing: Text(
               currencyFormat.format(transaksi.jumlah),
               style: TextStyle(

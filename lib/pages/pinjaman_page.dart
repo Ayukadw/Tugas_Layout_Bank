@@ -14,30 +14,38 @@ class PinjamanPage extends StatefulWidget {
 
 class _PinjamanPageState extends State<PinjamanPage> {
   final _nominalController = TextEditingController();
+  final _rekeningController = TextEditingController();
+
+  String _sumberDana = 'Bank Mitra';
 
   void _ajukanPinjaman(BuildContext context) {
     final double? jumlah = double.tryParse(_nominalController.text.replaceAll(',', '').replaceAll('.', ''));
+    final noRekening = _rekeningController.text.trim();
+
     if (jumlah == null || jumlah <= 0) {
       _showDialog(context, 'Nominal tidak valid. Masukkan jumlah yang benar.');
       return;
     }
 
+    if (_sumberDana != 'Koperasi' && noRekening.isEmpty) {
+      _showDialog(context, 'Mohon masukkan nomor rekening sumber dana.');
+      return;
+    }
+
     final formattedJumlah = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(jumlah);
 
-    // Dialog konfirmasi
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Konfirmasi Pinjaman'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Anda akan meminjam sejumlah:'),
+            Text('Anda akan meminjam sebesar: $formattedJumlah'),
             const SizedBox(height: 10),
-            Text(
-              formattedJumlah,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
+            Text('Sumber Dana: $_sumberDana'),
+            if (_sumberDana != 'Koperasi') Text('No. Rekening: $noRekening'),
           ],
         ),
         actions: [
@@ -51,14 +59,14 @@ class _PinjamanPageState extends State<PinjamanPage> {
               final nasabahProvider = context.read<NasabahProvider>();
               nasabahProvider.updateSaldo(nasabahProvider.saldo + jumlah);
               nasabahProvider.tambahTransaksi(Transaksi(
-                deskripsi: 'Pinjaman Masuk',
+                deskripsi: 'Pinjaman dari $_sumberDana',
                 jumlah: jumlah,
                 tanggal: DateTime.now(),
               ));
-
               Navigator.pop(context);
               _showDialog(context, 'Pinjaman berhasil ditambahkan ke saldo.');
               _nominalController.clear();
+              _rekeningController.clear();
             },
             child: const Text('Ya, Lanjutkan', style: TextStyle(color: cardColor)),
           ),
@@ -94,8 +102,7 @@ class _PinjamanPageState extends State<PinjamanPage> {
       backgroundColor: backgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
             Text('Saldo Anda', style: TextStyle(fontSize: 14, color: textLightColor)),
             const SizedBox(height: 4),
@@ -112,12 +119,39 @@ class _PinjamanPageState extends State<PinjamanPage> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
+            const SizedBox(height: 20),
+            DropdownButtonFormField<String>(
+              value: _sumberDana,
+              decoration: InputDecoration(
+                labelText: 'Sumber Dana',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              items: ['Bank Mitra', 'Koperasi', 'Investor Eksternal']
+                  .map((sumber) => DropdownMenuItem(
+                        value: sumber,
+                        child: Text(sumber),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                setState(() => _sumberDana = value ?? 'Bank Mitra');
+              },
+            ),
+            if (_sumberDana != 'Koperasi') ...[
+              const SizedBox(height: 20),
+              TextField(
+                controller: _rekeningController,
+                decoration: InputDecoration(
+                  labelText: 'No. Rekening Sumber Dana',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () => _ajukanPinjaman(context),
-                icon: const Icon(Icons.attach_money),
+                icon: const Icon(Icons.attach_money, color: cardColor),
                 label: const Text('Ajukan Pinjaman', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: cardColor)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryColor,

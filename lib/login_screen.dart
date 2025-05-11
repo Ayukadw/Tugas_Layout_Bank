@@ -4,9 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:flutter_tugasbank_ayuka/models/nasabah.dart';
 import 'package:flutter_tugasbank_ayuka/data/nasabah_provider.dart';
 import 'home_screen.dart';
+import '../pages/daftar_mbanking_page.dart'; // Import halaman daftar mbanking
+import '../pages/lupa_password_page.dart'; // Import halaman lupa password
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -129,8 +132,24 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton(onPressed: () {}, child: const Text("Daftar Mbanking", style: TextStyle(color: textLightColor))),
-                      TextButton(onPressed: () {}, child: const Text("Lupa password?", style: TextStyle(color: textLightColor))),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const DaftarMbankingPage()),
+                          );
+                        },
+                        child: const Text("Daftar Mbanking", style: TextStyle(color: textLightColor)),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LupaPasswordPage()),
+                          );
+                        },
+                        child: const Text("Lupa password?", style: TextStyle(color: textLightColor)),
+                      ),
                     ],
                   )
                 ],

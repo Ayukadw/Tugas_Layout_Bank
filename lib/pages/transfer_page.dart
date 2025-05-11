@@ -15,6 +15,7 @@ class TransferPage extends StatefulWidget {
 class _TransferPageState extends State<TransferPage> {
   final _rekeningController = TextEditingController();
   final _jumlahController = TextEditingController();
+  final _catatanController = TextEditingController();
 
   void _transferSaldo(BuildContext context) {
     final saldo = context.read<NasabahProvider>().saldo;
@@ -40,7 +41,6 @@ class _TransferPageState extends State<TransferPage> {
       decimalDigits: 0,
     ).format(jumlah);
 
-    // Konfirmasi transfer
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -79,6 +79,9 @@ class _TransferPageState extends State<TransferPage> {
                   deskripsi: 'Transfer ke $rekening',
                   jumlah: -jumlah,
                   tanggal: DateTime.now(),
+                  catatan: _catatanController.text.trim().isNotEmpty
+                      ? _catatanController.text.trim()
+                      : null,
                 ),
               );
 
@@ -86,6 +89,7 @@ class _TransferPageState extends State<TransferPage> {
               _showDialog('Transfer berhasil ke rekening $rekening sejumlah $formattedJumlah');
               _rekeningController.clear();
               _jumlahController.clear();
+              _catatanController.clear();
             },
             child: const Text('Ya, Transfer', 
                 style: TextStyle(color: cardColor, fontSize: 16)),
@@ -130,14 +134,14 @@ class _TransferPageState extends State<TransferPage> {
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Saldo Anda', style: TextStyle(color: textLightColor)),
-                  const SizedBox(height: 4),
-                  Text(
-                    formattedSaldo,
-                    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              children: [
+                Text('Saldo Anda', style: TextStyle(color: textLightColor)),
+                const SizedBox(height: 4),
+                Text(
+                  formattedSaldo,
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
             const SizedBox(height: 30),
             TextField(
@@ -158,6 +162,18 @@ class _TransferPageState extends State<TransferPage> {
               decoration: InputDecoration(
                 labelText: 'Jumlah Transfer',
                 prefixIcon: const Icon(Icons.money_outlined),
+                filled: true,
+                fillColor: backgroundColor,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _catatanController,
+              keyboardType: TextInputType.text,
+              decoration: InputDecoration(
+                labelText: 'Catatan (opsional)',
+                prefixIcon: const Icon(Icons.note_alt_outlined),
                 filled: true,
                 fillColor: backgroundColor,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
